@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+	<defs>
+		<linearGradient id="grad" x1="0%" y1="0%" x2="100%" y2="100%">
+			<stop offset="0%" stop-color="#3b82f6" />
+			<stop offset="100%" stop-color="#1d4ed8" />
+		</linearGradient>
+		<linearGradient id="pageGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+			<stop offset="0%" stop-color="#ffffff" />
+			<stop offset="100%" stop-color="#f1f5f9" />
+		</linearGradient>
+		<filter id="shadow" x="-10%" y="-10%" width="125%" height="125%">
+			<feDropShadow dx="0" dy="4" stdDeviation="4" flood-opacity="0.15" />
+		</filter>
+	</defs>
+	<!-- Background rounded rect -->
+	<rect x="8" y="8" width="112" height="112" rx="26" fill="url(#grad)" />
+	
+	<!-- Back Sheet (Double Body page) -->
+	<rect x="42" y="24" width="54" height="66" rx="6" fill="#cbd5e1" opacity="0.6" filter="url(#shadow)" />
+	
+	<!-- Front Sheet (Main page) -->
+	<rect x="30" y="34" width="54" height="66" rx="6" fill="url(#pageGrad)" filter="url(#shadow)" />
+	
+	<!-- Sheet lines -->
+	<line x1="40" y1="48" x2="74" y2="48" stroke="#3b82f6" stroke-width="4" stroke-linecap="round" />
+	<line x1="40" y1="60" x2="68" y2="60" stroke="#94a3b8" stroke-width="3" stroke-linecap="round" />
+	<line x1="40" y1="70" x2="72" y2="70" stroke="#94a3b8" stroke-width="3" stroke-linecap="round" />
+	<line x1="40" y1="80" x2="58" y2="80" stroke="#94a3b8" stroke-width="3" stroke-linecap="round" />
+	
+	<!-- Accumulate + Badge in bottom right -->
+	<circle cx="94" cy="94" r="20" fill="#10b981" filter="url(#shadow)" />
+	<path d="M94 84 V104 M84 94 H104" stroke="#ffffff" stroke-width="4.5" stroke-linecap="round" />
+</svg>

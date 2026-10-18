@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>HTML Multi-Page Accumulator</title>
+	<link rel="stylesheet" href="styles.css">
+</head>
+<body class="popup-body">
+	<div class="popup-container">
+		<!-- Header -->
+		<header class="popup-header">
+			<div class="popup-brand">
+				<img src="icons/icon48.png" alt="Icon" class="popup-logo">
+				<div>
+					<h1 class="popup-title">HTML Accumulator</h1>
+					<p class="popup-subtitle">Multi-page context for AI</p>
+				</div>
+			</div>
+			<div class="popup-badge" id="badge-page-count">0 Pages</div>
+		</header>
+
+		<!-- Capture Primary Button -->
+		<button class="btn btn-capture" id="btn-capture">
+			<span class="btn-icon">➕</span>
+			<span class="btn-text">Capture Active Page</span>
+			<span class="btn-shortcut">Alt+C / Alt+Shift+C</span>
+		</button>
+
+		<!-- Stats Card -->
+		<div class="stats-card" id="stats-card">
+			<div class="stat-item">
+				<span class="stat-label">Pages</span>
+				<span class="stat-value" id="stat-pages">0</span>
+			</div>
+			<div class="stat-item">
+				<span class="stat-label">Size</span>
+				<span class="stat-value" id="stat-size">0 KB</span>
+			</div>
+			<div class="stat-item">
+				<span class="stat-label">Est. Tokens</span>
+				<span class="stat-value" id="stat-tokens">~0</span>
+			</div>
+		</div>
+
+		<!-- Format Selector (Always Visible 3-Option Buttons) -->
+		<div class="form-group">
+			<label class="form-label">Export Format:</label>
+			<div class="format-btn-group" id="format-btn-group" role="radiogroup" aria-label="Export Format">
+				<button type="button" class="btn-format active" data-format="cleaned" title="Cleaned HTML (Recommended for LLMs)">
+					✨ Cleaned HTML
+				</button>
+				<button type="button" class="btn-format" data-format="markdown" title="Semantic Markdown for low token footprint">
+					📝 Markdown
+				</button>
+				<button type="button" class="btn-format" data-format="raw" title="Untouched document.body.innerHTML">
+					📄 Raw HTML
+				</button>
+			</div>
+		</div>
+
+		<!-- Export Actions -->
+		<div class="export-actions">
+			<button class="btn btn-primary" id="btn-download" disabled>
+				<span>💾 Download File</span>
+			</button>
+			<button class="btn btn-secondary" id="btn-copy" disabled>
+				<span>📋 Copy All</span>
+			</button>
+		</div>
+
+		<!-- Clear / Reset -->
+		<div class="secondary-actions">
+			<button class="btn btn-link btn-danger" id="btn-clear" disabled>
+				🗑️ Clear Buffer
+			</button>
+		</div>
+
+		<!-- Captured Pages Accordion / List -->
+		<div class="pages-section">
+			<div class="pages-header" id="toggle-pages-list">
+				<span class="pages-title">Captured Pages (<span id="pages-list-count">0</span>)</span>
+				<span class="pages-toggle-arrow" id="pages-arrow">&#9662;</span>
+			</div>
+			<div class="pages-list" id="pages-list">
+				<!-- Dynamically filled -->
+				<div class="empty-state" id="empty-state">No pages captured yet.<br>Click "Capture Active Page" or press Alt+Shift+C.</div>
+			</div>
+		</div>
+
+		<!-- Settings Footer -->
+		<footer class="popup-footer">
+			<label class="checkbox-label">
+				<input type="checkbox" id="chk-auto-clipboard" checked>
+				<span>Auto-copy combined payload to clipboard</span>
+			</label>
+			<div class="popup-credits">
+				Crafted with <span>Gemini 3.8 Flash (Medium)</span>
+			</div>
+		</footer>
+	</div>
+
+	<script src="popup.js"></script>
+</body>
+</html>

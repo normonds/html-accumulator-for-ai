@@ -1,0 +1,14 @@
+# Test and sample exports
+*_products_pages_*.html
+Screenshot*.png
+
+# Build artifacts
+dist-firefox/
+*.zip
+*.xpi
+
+# System and editor files
+.DS_Store
+Thumbs.db
+*.swp
+*.log
