@@ -12,3 +12,6 @@ dist-firefox/
 Thumbs.db
 *.swp
 *.log
+
+# Local agent session pointer
+gemini
