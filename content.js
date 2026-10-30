@@ -32,9 +32,8 @@
 		const hiddenElements = clone.querySelectorAll("[hidden], [aria-hidden='true'], [style*='display: none'], [style*='display:none']");
 		hiddenElements.forEach(el => el.remove());
 
-		// 3. Remove our own HUD if present in clone
-		const hud = clone.querySelector("#ai-html-accumulator-hud");
-		if (hud) hud.remove();
+		// 3. Remove our own HUD and inspector overlay if present in clone
+		clone.querySelectorAll("#ai-html-accumulator-hud, #ai-html-accumulator-inspector").forEach(el => el.remove());
 
 		// 4. Clean attributes across all elements
 		const allNodes = clone.querySelectorAll("*");
@@ -435,11 +434,200 @@
 		}
 	}, true);
 
+	/**
+	 * Element inspector: hold Ctrl and hover to outline an element and show its id/class.
+	 * Press Shift while holding Ctrl to copy the full id/class path to the clipboard.
+	 */
+	let inspectorOverlay = null;
+	let inspectorTarget = null;
+	let lastMouseX = -1;
+	let lastMouseY = -1;
+	let ctrlDownAt = 0;
+	let movedWhileCtrl = false;
+	let showFullPath = false;
+
+	function describeElement(el) {
+		let label = el.tagName.toLowerCase();
+		if (el.id) label += "#" + CSS.escape(el.id);
+		Array.from(el.classList).forEach(cls => {
+			label += "." + CSS.escape(cls);
+		});
+		return label;
+	}
+
+	function buildElementPath(el) {
+		const parts = [];
+		for (let node = el; node && node.nodeType === Node.ELEMENT_NODE; node = node.parentElement) {
+			parts.unshift(describeElement(node));
+		}
+		return parts.join(" > ");
+	}
+
+	// Classes that are build-generated (CSS-in-JS hashes) or Tailwind variants, which won't be found in source
+	const UNSTABLE_CLASS_RE = /^(css|sc|jsx|svelte|emotion|chakra|styled)-|[:[\]/]|^[a-zA-Z]+_[a-zA-Z0-9_-]*[0-9][a-zA-Z0-9_-]{3,}$|^[a-zA-Z]*[0-9][a-zA-Z0-9]{5,}$/;
+
+	function selectorSegment(el) {
+		const tag = el.tagName.toLowerCase();
+		const classes = Array.from(el.classList).filter(cls => !UNSTABLE_CLASS_RE.test(cls)).slice(0, 2);
+		let segment = tag + classes.map(cls => "." + CSS.escape(cls)).join("");
+
+		// Disambiguate among siblings that would match the same segment
+		const parent = el.parentElement;
+		if (parent) {
+			const sameType = Array.from(parent.children).filter(child => child.tagName === el.tagName);
+			const lookalikes = sameType.filter(child => child.matches(segment));
+			if (lookalikes.length > 1) segment += `:nth-of-type(${sameType.indexOf(el) + 1})`;
+		}
+		return segment;
+	}
+
+	function isUniqueSelector(selector) {
+		try {
+			return document.querySelectorAll(selector).length === 1;
+		} catch (e) {
+			return false;
+		}
+	}
+
+	/**
+	 * Builds the shortest selector that matches only this element.
+	 * Elements with an id are referenced by tag and id alone (e.g. div#main).
+	 */
+	function buildShortSelector(el) {
+		const idSelector = node => node.tagName.toLowerCase() + "#" + CSS.escape(node.id);
+		if (el.id) return idSelector(el);
+
+		let selector = "";
+		for (let node = el; node && node.nodeType === Node.ELEMENT_NODE; node = node.parentElement) {
+			const segment = node !== el && node.id ? idSelector(node) : selectorSegment(node);
+			selector = selector ? `${segment} > ${selector}` : segment;
+			if (isUniqueSelector(selector)) return selector;
+		}
+		return selector;
+	}
+
+	function ensureInspectorOverlay() {
+		if (inspectorOverlay && inspectorOverlay.isConnected) return inspectorOverlay;
+		inspectorOverlay = document.createElement("div");
+		inspectorOverlay.id = "ai-html-accumulator-inspector";
+		inspectorOverlay.innerHTML = `
+			<div class="ai-inspector-box"></div>
+			<div class="ai-inspector-tooltip">
+				<span class="ai-inspector-label"></span>
+				<span class="ai-inspector-status"></span>
+			</div>
+		`;
+		document.documentElement.appendChild(inspectorOverlay);
+		return inspectorOverlay;
+	}
+
+	function updateInspector(target) {
+		if (!target || target === document.documentElement || target.closest("#ai-html-accumulator-inspector")) return;
+		const overlay = ensureInspectorOverlay();
+		const box = overlay.querySelector(".ai-inspector-box");
+		const tooltip = overlay.querySelector(".ai-inspector-tooltip");
+		const rect = target.getBoundingClientRect();
+
+		// Clear the copy status once the user hovers a different element
+		if (target !== inspectorTarget) setInspectorStatus("");
+		inspectorTarget = target;
+
+		box.style.top = `${rect.top}px`;
+		box.style.left = `${rect.left}px`;
+		box.style.width = `${rect.width}px`;
+		box.style.height = `${rect.height}px`;
+
+		overlay.querySelector(".ai-inspector-label").textContent = showFullPath ? buildElementPath(target) : describeElement(target);
+		tooltip.classList.toggle("ai-inspector-tooltip-full", showFullPath);
+
+		// Measure at the left edge so a wrapping full path reports its natural size
+		tooltip.style.left = "0px";
+
+		// Place tooltip above the element, or below it when there is no room above
+		const tooltipHeight = tooltip.offsetHeight || 24;
+		const top = rect.top - tooltipHeight - 4 >= 0 ? rect.top - tooltipHeight - 4 : Math.min(rect.bottom + 4, window.innerHeight - tooltipHeight);
+		const maxLeft = window.innerWidth - tooltip.offsetWidth - 4;
+		tooltip.style.top = `${Math.max(0, top)}px`;
+		tooltip.style.left = `${Math.max(0, Math.min(rect.left, maxLeft))}px`;
+	}
+
+	function setInspectorStatus(text, isError = false) {
+		const status = inspectorOverlay && inspectorOverlay.querySelector(".ai-inspector-status");
+		if (!status) return;
+		status.textContent = text;
+		status.classList.toggle("ai-inspector-status-error", isError);
+	}
+
+	function hideInspector() {
+		inspectorTarget = null;
+		if (inspectorOverlay) {
+			inspectorOverlay.remove();
+			inspectorOverlay = null;
+		}
+	}
+
+	window.addEventListener("mousemove", (e) => {
+		lastMouseX = e.clientX;
+		lastMouseY = e.clientY;
+		if (e.ctrlKey) {
+			movedWhileCtrl = true;
+			showFullPath = e.altKey;
+			updateInspector(e.target);
+		} else if (inspectorTarget) {
+			hideInspector();
+		}
+	}, true);
+
+	window.addEventListener("keydown", async (e) => {
+		if (e.key === "Control" && !e.repeat) {
+			ctrlDownAt = Date.now();
+			movedWhileCtrl = false;
+			showFullPath = e.altKey;
+			if (lastMouseX >= 0) updateInspector(document.elementFromPoint(lastMouseX, lastMouseY));
+			return;
+		}
+		// Ctrl+Alt switches the tooltip to the full CSS path
+		if (e.key === "Alt" && e.ctrlKey && inspectorTarget) {
+			e.preventDefault();
+			showFullPath = true;
+			updateInspector(inspectorTarget);
+			return;
+		}
+		// Require a hover pause or mouse movement first, so quick Ctrl+Shift+<key> shortcuts don't overwrite the clipboard
+		const inspecting = inspectorTarget && (movedWhileCtrl || Date.now() - ctrlDownAt > 400);
+		if (e.key === "Shift" && e.ctrlKey && !e.repeat && inspecting) {
+			e.preventDefault();
+			const selector = buildShortSelector(inspectorTarget);
+			const success = await copyToClipboard(selector);
+			setInspectorStatus(success ? `✓ Copied ${selector}` : "Copy failed", !success);
+			// Re-position, since the status changes the tooltip width
+			if (inspectorTarget) updateInspector(inspectorTarget);
+		}
+	}, true);
+
+	window.addEventListener("keyup", (e) => {
+		if (e.key === "Control") {
+			hideInspector();
+		} else if (e.key === "Alt" && inspectorTarget) {
+			// Keep Alt release from focusing the browser menu bar
+			e.preventDefault();
+			showFullPath = false;
+			updateInspector(inspectorTarget);
+		}
+	}, true);
+
+	window.addEventListener("blur", hideInspector);
+	window.addEventListener("scroll", () => {
+		if (inspectorTarget) updateInspector(inspectorTarget);
+	}, true);
+
 	// Expose globally for testing/debugging
 	window.__AI_HTML_ACCUMULATOR__ = {
 		cleanDomForAI,
 		domToMarkdown,
 		buildCombinedPayload,
-		captureCurrentPage
+		captureCurrentPage,
+		buildElementPath,
+		buildShortSelector
 	};
 })();

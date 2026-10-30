@@ -567,3 +567,71 @@
 .ai-hud-mini-toast.ai-hud-error {
 	background: #ef4444;
 }
+
+/* --------------------------------------------------------------------------
+   Injected Element Inspector (Ctrl + hover)
+   -------------------------------------------------------------------------- */
+#ai-html-accumulator-inspector {
+	position: fixed;
+	inset: 0;
+	pointer-events: none;
+	z-index: 2147483646;
+}
+
+#ai-html-accumulator-inspector .ai-inspector-box {
+	position: fixed;
+	box-sizing: border-box;
+	border: 2px solid #2563eb;
+	background: rgba(37, 99, 235, 0.08);
+	pointer-events: none;
+}
+
+#ai-html-accumulator-inspector .ai-inspector-tooltip {
+	position: fixed;
+	display: flex;
+	gap: 8px;
+	align-items: baseline;
+	max-width: min(600px, calc(100vw - 8px));
+	box-sizing: border-box;
+	padding: 4px 8px;
+	background: #0f172a;
+	color: #f8fafc;
+	font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+	font-size: 12px;
+	line-height: 1.4;
+	border-radius: 4px;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+	pointer-events: none;
+	white-space: nowrap;
+}
+
+#ai-html-accumulator-inspector .ai-inspector-label {
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+#ai-html-accumulator-inspector .ai-inspector-tooltip.ai-inspector-tooltip-full {
+	max-width: min(800px, calc(100vw - 8px));
+	white-space: normal;
+}
+
+#ai-html-accumulator-inspector .ai-inspector-tooltip-full .ai-inspector-label {
+	overflow-wrap: anywhere;
+}
+
+#ai-html-accumulator-inspector .ai-inspector-status {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	color: #34d399;
+	font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+	font-weight: 600;
+}
+
+#ai-html-accumulator-inspector .ai-inspector-status:empty {
+	display: none;
+}
+
+#ai-html-accumulator-inspector .ai-inspector-status.ai-inspector-status-error {
+	color: #f87171;
+}

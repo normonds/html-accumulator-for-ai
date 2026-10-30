@@ -66,6 +66,9 @@ Export your accumulated data in **Dual Mode**:
 
 - **Capture & Append Page**: `Alt+Shift+C` (macOS: `Command+Shift+C`)
   - Captures the active page and appends it to the buffer without even opening the popup!
+- **Inspect Element**: hold `Ctrl` and hover to outline an element and show its tag, id and classes.
+  - While holding `Ctrl`, press `Alt` to show the element's full CSS path in the tooltip.
+  - While holding `Ctrl`, press `Shift` to copy a short selector that matches only that element, handy for pointing an AI agent at it. Elements with an id copy just the tag and id (e.g. `button#buy-now`); others copy the shortest unique path (e.g. `ul.results > li.item:nth-of-type(3)`), skipping build-generated class names.
 
 ---
 
